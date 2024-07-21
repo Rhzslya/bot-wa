@@ -1,6 +1,6 @@
-# Bot WA
+# Flugel Bot
 
-Welcome to the Sinari Cell Bot! This bot assists you in managing Your Business.
+Welcome to the Flugel Bot! This bot assists you in managing Your Business.
 
 ## Installation and Running the Bot
 
