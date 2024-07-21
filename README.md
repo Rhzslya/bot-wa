@@ -17,11 +17,3 @@ Follow these steps to install and run the bot:
 1. **Clone this repository:**
    git clone https://github.com/rhzslya/bot-wa.git
    cd bot-wa
-2.**Install dependencies:**
-  -npm install
-3.**Configure Environment Variables**
-  MONGO_URI=mongodb:[Your Database]
-4.**Run the Bot**
- -npm run dev
-
-**Note**: You can customize the bot for your business needs.
