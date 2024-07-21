@@ -17,6 +17,9 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  lastInteraction: {
+    type: Date,
+  },
 });
 
 const User = mongoose.models.user || mongoose.model("user", userSchema);

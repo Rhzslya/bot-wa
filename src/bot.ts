@@ -4,7 +4,11 @@ import makeWASocket, {
 } from "@whiskeysockets/baileys";
 import pino from "pino";
 import User from "./models/userModel";
-import Service from "./models/serviceModel";
+import { welcomeChat } from "./utils/welcomeChat";
+import { handleAddCommand } from "./utils/servicesHandlers";
+import { getStatusService } from "./utils/getStatus";
+import { updateStatus } from "./utils/updateStatus";
+import { helperChat } from "./utils/helperChat";
 export const connectWhatsapp = async () => {
   const { state, saveCreds } = await useMultiFileAuthState("session");
   const socket = makeWASocket({
@@ -46,52 +50,28 @@ export const connectWhatsapp = async () => {
       const pushName = chat.pushName;
       const number = remoteJid?.split("@")[0];
 
-      const user = await User.findOne({ id: remoteJid });
-
-      await User.findOneAndUpdate(
-        { id: remoteJid },
-        { username: pushName, number: number },
-        { upsert: true, new: true }
-      );
+      await welcomeChat(socket, remoteJid, pushName, number);
 
       if (pesan === "halo") {
         await socket.sendMessage(remoteJid, {
-          text: `Halo! ${
-            user?.username || pushName
-          }, Selamat Datang di Sinari Cell, Ada yang bisa saya bantu?`,
+          text: `Halo, ${pushName}!\n\n🔅   Selamat Datang di Sinari Cell!   🔅\n\nKami menyediakan berbagai layanan perbaikan dan aksesori ponsel berkualitas. Jangan ragu untuk bertanya tentang layanan kami atau jika Anda membutuhkan bantuan lebih lanjut.\n\n✨Ada yang bisa kami bantu hari ini?✨\n\nJika Anda memerlukan bantuan penggunaan bot ini, ketik "!help" untuk informasi lebih lanjut.`,
         });
       }
 
-      if (pesan?.startsWith("!add ")) {
-        const parts = pesan.split("\n");
-        if (parts.length === 5) {
-          const [_, username, phoneNumber, serviceType, price] = parts;
+      if (pesan?.startsWith("!add")) {
+        await handleAddCommand(socket, pesan, remoteJid);
+      }
 
-          const service = new Service({
-            username,
-            number: phoneNumber,
-            serviceType,
-            price: parseInt(price, 10),
-            serviceId: new Date().getTime(), // Unique identifier
-          });
+      if (pesan?.startsWith("!status")) {
+        await getStatusService(socket, pesan, remoteJid);
+      }
 
-          try {
-            await service.save();
-            await socket.sendMessage(remoteJid, {
-              text: `Data Tersimpan dengan ServiceID: ${service.serviceId}`,
-            });
-          } catch (error) {
-            console.error("Error saat menyimpan data:", error);
-            await socket.sendMessage(remoteJid, {
-              text: "Terjadi kesalahan saat menyimpan data. Silakan coba lagi.",
-            });
-          }
-        } else {
-          await socket.sendMessage(remoteJid, {
-            text:
-              "Format data tidak valid. Harap gunakan format: !add Nama NoHp TipeServis Harga",
-          });
-        }
+      if (pesan?.startsWith("!update")) {
+        await updateStatus(socket, pesan, remoteJid);
+      }
+
+      if (pesan === "!help") {
+        await helperChat(socket, remoteJid);
       }
     }
   });
