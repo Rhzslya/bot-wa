@@ -1,4 +1,4 @@
-# Sinari Cell Bot
+# Bot WA
 
 Welcome to the Sinari Cell Bot! This bot assists you in managing Your Business.
 
