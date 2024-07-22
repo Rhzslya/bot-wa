@@ -9,6 +9,7 @@ import { handleAddCommand } from "./utils/servicesHandlers";
 import { getStatusService } from "./utils/getStatus";
 import { updateStatus } from "./utils/updateStatus";
 import { helperChat } from "./utils/helperChat";
+import { checkProductPrice } from "./utils/productPrice";
 export const connectWhatsapp = async () => {
   const { state, saveCreds } = await useMultiFileAuthState("session");
   const socket = makeWASocket({
@@ -68,6 +69,11 @@ export const connectWhatsapp = async () => {
 
       if (pesan?.startsWith("!update")) {
         await updateStatus(socket, pesan, remoteJid);
+      }
+
+      if (pesan.startsWith("!harga")) {
+        console.log("Pesan diterima: ", pesan, remoteJid);
+        await checkProductPrice(socket, pesan, remoteJid);
       }
 
       if (pesan === "!help") {
