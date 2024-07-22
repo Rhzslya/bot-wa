@@ -1,8 +1,8 @@
 import { WASocket } from "@whiskeysockets/baileys";
 import Service from "../models/serviceModel";
 import User from "../models/userModel";
-import { isValidationInt, isValidationIntWithZero } from "./Validation";
-import { statusMapping } from "./statusMapping";
+import { isValidationInt, isValidationIntWithZero } from "./validation";
+import { statusMapping } from "./textMapping";
 
 export const updateStatus = async (
   socket: WASocket,

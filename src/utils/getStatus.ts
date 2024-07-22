@@ -2,7 +2,7 @@ import { WASocket } from "@whiskeysockets/baileys";
 import Service from "../models/serviceModel";
 import User from "../models/userModel";
 import { formatPriceToIDR } from "./formatPrice";
-import { isValidationInt } from "./Validation";
+import { isValidationInt } from "./validation";
 export const getStatusService = async (
   socket: WASocket,
   pesan: string,

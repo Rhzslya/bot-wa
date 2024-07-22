@@ -1,5 +1,5 @@
 import { WASocket } from "@whiskeysockets/baileys";
-import { helpMessageForCustomer, helpMessageForAdmin } from "./helperMessage";
+import { helpMessageForCustomer, helpMessageForAdmin } from "./textMessage";
 import User from "../models/userModel";
 export const helperChat = async (socket: WASocket, remoteJid: string) => {
   try {

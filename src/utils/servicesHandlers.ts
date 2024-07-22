@@ -1,7 +1,7 @@
 import { WASocket } from "@whiskeysockets/baileys";
 import Service from "../models/serviceModel";
-import { convertNumber } from "./ConvertNumber";
-import { validationNumber, isValidString, isValidationInt } from "./Validation";
+import { convertNumber } from "./convertNumber";
+import { validationNumber, isValidString, isValidationInt } from "./validation";
 import { capitalizeFirst } from "./capitalizeFirst";
 import { getNextSequenceValue } from "./getNextSequenceValue";
 import User from "../models/userModel";
