@@ -27,5 +27,9 @@ export const checkProductPrice = async (
           "Terjadi kesalahan saat mendapatkan status layanan. Silakan coba lagi.",
       });
     }
+  } else {
+    await socket.sendMessage(remoteJid, {
+      text: `Format Tidak Valid, mohon untuk menggunakan Format yang sesuai\nContoh Format : "!harga(spasi)indosat"`,
+    });
   }
 };
