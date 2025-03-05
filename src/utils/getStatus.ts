@@ -2,7 +2,6 @@ import { WASocket } from "@whiskeysockets/baileys";
 import Service from "../models/serviceModel";
 import User from "../models/userModel";
 import { formatPriceToIDR } from "./formatPrice";
-import { isValidationInt } from "./validation";
 export const getStatusService = async (
   socket: WASocket,
   pesan: string,
@@ -12,15 +11,14 @@ export const getStatusService = async (
   if (parts.length === 2) {
     const [_, serviceId] = parts;
 
-    if (!isValidationInt(serviceId.trim())) {
+    if (!serviceId.trim()) {
       await sendErrorMessage(socket, remoteJid, "ServiceID tidak Valid");
       return;
     }
 
     try {
-      const service = await Service.findOne({
-        serviceId: parseInt(serviceId, 10),
-      });
+      // Gunakan serviceId sebagai string, jangan di-parse ke integer
+      const service = await Service.findOne({ serviceId: serviceId.trim() });
 
       if (service) {
         const userNumber = remoteJid.split("@")[0];
@@ -32,10 +30,8 @@ export const getStatusService = async (
         const formattedPrice = formatPriceToIDR(service.price);
 
         if (!(user && (user.isAdmin || user.number === service.number))) {
-          // Jika nomor telepon tidak sesuai atau tidak ditemukan
           await socket.sendMessage(remoteJid, {
-            text:
-              "Anda tidak memiliki izin untuk memeriksa status layanan ini.",
+            text: "Anda tidak memiliki izin untuk memeriksa status layanan ini.",
           });
         } else {
           await socket.sendMessage(remoteJid, {
@@ -50,8 +46,7 @@ export const getStatusService = async (
     } catch (error) {
       console.error("Error saat mendapatkan status layanan:", error);
       await socket.sendMessage(remoteJid, {
-        text:
-          "Terjadi kesalahan saat mendapatkan status layanan. Silakan coba lagi.",
+        text: "Terjadi kesalahan saat mendapatkan status layanan. Silakan coba lagi.",
       });
     }
   }

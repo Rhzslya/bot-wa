@@ -25,15 +25,14 @@ export const updateStatus = async (
 
     if (!(statusNumber in statusMapping)) {
       await socket.sendMessage(remoteJid, {
-        text:
-          "Status tidak valid. Gunakan 0 untuk Belum Selesai dan 1 untuk Selesai.",
+        text: "Status tidak valid. Gunakan 0 untuk Belum Selesai dan 1 untuk Selesai.",
       });
       return;
     }
 
     try {
       const service = await Service.findOne({
-        serviceId: parseInt(serviceId, 10),
+        serviceId: serviceId.trim(),
       });
 
       if (service) {
@@ -46,7 +45,7 @@ export const updateStatus = async (
           });
         } else {
           service.status = statusMapping[statusNumber];
-          service.updatedAt = Date.now();
+          service.updatedAt = new Date();
           await service.save();
 
           await socket.sendMessage(remoteJid, {
@@ -61,14 +60,12 @@ export const updateStatus = async (
     } catch (error) {
       console.error("Error saat mendapatkan status layanan:", error);
       await socket.sendMessage(remoteJid, {
-        text:
-          "Terjadi kesalahan saat mendapatkan status layanan. Silakan coba lagi.",
+        text: "Terjadi kesalahan saat mendapatkan status layanan. Silakan coba lagi.",
       });
     }
   } else {
     await socket.sendMessage(remoteJid, {
-      text:
-        "Format pesan tidak valid. Gunakan format: '-serviceId-statusNumber'.",
+      text: "Format pesan tidak valid. Gunakan format: '-serviceId-statusNumber'.",
     });
   }
 };

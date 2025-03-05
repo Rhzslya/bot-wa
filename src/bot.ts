@@ -3,7 +3,6 @@ import makeWASocket, {
   DisconnectReason,
 } from "@whiskeysockets/baileys";
 import pino from "pino";
-import User from "./models/userModel";
 import { welcomeChat } from "./utils/welcomeChat";
 import { handleAddCommand } from "./utils/servicesHandlers";
 import { getStatusService } from "./utils/getStatus";

@@ -1,46 +1,29 @@
-import mongoose from "mongoose";
-const serviceSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    required: true,
-  },
-  number: {
-    type: Number,
-    required: true,
-  },
-  serviceType: {
-    type: String,
-    required: true,
-  },
-  modelType: {
-    type: String,
-    required: true,
-  },
-  price: {
-    type: Number,
-    required: true,
-  },
-  serviceId: {
-    type: Number,
-    required: true,
-    unique: true, // Ensure serviceId is unique
-  },
-  status: {
-    type: String,
-    default: "Belum Selesai",
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now, // Set default value to current date and time
-  },
-  updatedAt: {
-    type: Date,
-    // Set default value to current date and time
-  },
-});
+import mongoose, { Document } from "mongoose";
 
-// Tambahkan plugin AutoIncrement ke skema jika versi mongoose-sequence terbaru mendukung
-const Service =
-  mongoose.models.service || mongoose.model("service", serviceSchema);
+export interface IService extends Document {
+  serviceId: number;
+  username: string;
+  number: string;
+  serviceType: string;
+  modelType: string;
+  price: number;
+  status?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
 
+const serviceSchema = new mongoose.Schema<IService>(
+  {
+    serviceId: { type: Number, required: true, unique: true },
+    username: { type: String, required: true },
+    number: { type: String, required: true },
+    serviceType: { type: String, required: true },
+    modelType: { type: String, required: true },
+    price: { type: Number, required: true },
+    status: { type: String, default: "Belum Selesai" },
+  },
+  { timestamps: true } // Ini akan otomatis menambahkan dan mengupdate createdAt & updatedAt
+);
+
+const Service = mongoose.model<IService>("Service", serviceSchema);
 export default Service;
