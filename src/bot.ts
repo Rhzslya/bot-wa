@@ -9,6 +9,10 @@ import { getStatusService } from "./utils/getStatus";
 import { updateStatus } from "./utils/updateStatus";
 import { helperChat } from "./utils/helperChat";
 import { checkProductPrice } from "./utils/productPrice";
+import { helloText } from "./utils/textMessage";
+import { greets } from "./utils/getGreetings";
+import { addProduct } from "./utils/productHandlers";
+import { isAdmin } from "./utils/userHelper";
 export const connectWhatsapp = async () => {
   const { state, saveCreds } = await useMultiFileAuthState("session");
   const socket = makeWASocket({
@@ -52,14 +56,18 @@ export const connectWhatsapp = async () => {
 
       await welcomeChat(socket, remoteJid, pushName, number);
 
-      if (pesan === "halo") {
+      if (greets.includes(pesan.toLowerCase())) {
         await socket.sendMessage(remoteJid, {
-          text: `Halo, ${pushName}!\n\n🔅   Selamat Datang di Sinari Cell!   🔅\n\nKami menyediakan berbagai layanan perbaikan dan aksesori ponsel berkualitas. Jangan ragu untuk bertanya tentang layanan kami atau jika Anda membutuhkan bantuan lebih lanjut.\n\n✨Ada yang bisa kami bantu hari ini?✨\n\nJika Anda memerlukan bantuan penggunaan bot ini, ketik "!help" untuk informasi lebih lanjut.`,
+          text: helloText(pushName),
         });
       }
 
-      if (pesan?.startsWith("!add")) {
+      if (pesan?.startsWith("!add_service")) {
         await handleAddCommand(socket, pesan, remoteJid);
+      }
+
+      if (pesan?.startsWith("!add_product")) {
+        await addProduct(socket, pesan, remoteJid);
       }
 
       if (pesan?.startsWith("!status")) {
@@ -71,7 +79,6 @@ export const connectWhatsapp = async () => {
       }
 
       if (pesan.startsWith("!harga")) {
-        console.log("Pesan diterima: ", pesan, remoteJid);
         await checkProductPrice(socket, pesan, remoteJid);
       }
 

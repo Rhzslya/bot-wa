@@ -19,3 +19,7 @@ export const isValidationIntWithZero = (value: string): boolean => {
   const sanitizedValue = value.trim();
   return /^[0-9]+$/.test(sanitizedValue);
 };
+
+export const isValidProductId = (productId: string): boolean => {
+  return /^[a-zA-Z0-9]+$/.test(productId);
+};

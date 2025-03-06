@@ -1,3 +1,5 @@
+import { getGreeting } from "./getGreetings";
+
 export const helpMessageForCustomer = `
 🌟 *Sinari Cell Bot Help* 🌟
 
@@ -48,7 +50,7 @@ Selamat datang di layanan bantuan Sinari Cell! Berikut adalah daftar perintah ya
 [Nomor Handphone] 
 [Tipe Handphone] 
 [Tipe Servis] 
-[Price] 
+[Harga] 
 
 _Contoh:_  
 !add
@@ -361,3 +363,17 @@ Daftar Harga Transfer Bank Lain:
 •  Transfer Rp. 4.001.000 - 5.000.000 : Admin Rp  20.000 
 •  Transfer Rp. 5.001.000 - 6.000.000 : Admin Rp  22.000 
 `;
+
+export const helloText = (pushName: string) =>
+  `*Halo ${getGreeting()}, ${pushName}!* \n\nSelamat datang di *Sinari Cell.*\n\nKami menyediakan berbagai layanan perbaikan untuk *smartphone, laptop, dan komputer*, serta menyediakan *sparepart berkualitas* untuk perangkat tersebut. Jangan ragu untuk bertanya mengenai layanan kami atau jika Anda membutuhkan bantuan lebih lanjut.\n\n_Apa yang bisa kami bantu hari ini?_ \n\nUntuk informasi lebih lanjut tentang penggunaan bot ini, silakan ketik *"!help".*`;
+
+// Daftar provider yang valid
+export const validProviders = [
+  "telkomsel",
+  "axis",
+  "indosat",
+  "tri",
+  "smartfren",
+  "xl",
+  "byu",
+];

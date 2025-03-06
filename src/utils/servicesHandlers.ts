@@ -5,12 +5,14 @@ import { validationNumber, isValidString, isValidationInt } from "./validation";
 import { capitalizeFirst } from "./capitalizeFirst";
 import { getNextSequenceValue } from "./getNextSequenceValue";
 import User from "../models/userModel";
+
 export const handleAddCommand = async (
   socket: WASocket,
   pesan: string,
   remoteJid: string
 ) => {
   const parts = pesan.split("\n");
+
   if (parts.length === 6) {
     const [_, username, phoneNumber, modelType, serviceType, price] = parts;
 
@@ -18,7 +20,7 @@ export const handleAddCommand = async (
       await sendErrorMessage(
         socket,
         remoteJid,
-        "Username tidak valid. Username tidak boleh mengandung angka."
+        "*Nama pengguna tidak valid.* Nama tidak boleh mengandung angka."
       );
       return;
     }
@@ -27,7 +29,7 @@ export const handleAddCommand = async (
       await sendErrorMessage(
         socket,
         remoteJid,
-        "Tipe Servis tidak Valid. Tipe Servis tidak boleh mengandung angka"
+        "*Jenis layanan tidak valid.* Jenis layanan tidak boleh mengandung angka."
       );
       return;
     }
@@ -36,7 +38,7 @@ export const handleAddCommand = async (
       await sendErrorMessage(
         socket,
         remoteJid,
-        "Nomor telepon tidak valid. Harap masukkan nomor yang benar."
+        "*Nomor telepon tidak valid.* Harap masukkan nomor yang benar."
       );
       return;
     }
@@ -45,10 +47,11 @@ export const handleAddCommand = async (
       await sendErrorMessage(
         socket,
         remoteJid,
-        "Harga tidak valid. Harap masukkan angka yang benar dan positif."
+        "*Harga tidak valid.* Harap masukkan angka yang benar dan positif."
       );
       return;
     }
+
     try {
       const userNumber = remoteJid.split("@")[0];
       const user = await User.findOne({ number: userNumber });
@@ -56,7 +59,7 @@ export const handleAddCommand = async (
 
       if (!user || !user.isAdmin) {
         await socket.sendMessage(remoteJid, {
-          text: "Anda tidak memiliki izin untuk menggunakan layanan ini.",
+          text: "*Anda tidak memiliki izin* untuk menggunakan layanan ini.",
         });
       } else {
         const service = new Service({
@@ -65,12 +68,13 @@ export const handleAddCommand = async (
           serviceType: capitalizeFirst(serviceType),
           modelType: capitalizeFirst(modelType),
           price: parseInt(price, 10),
-          serviceId: `${serviceIdCounter}${parseInt(phoneNumber.slice(-3))}`, // Unique identifier
+          serviceId: `${serviceIdCounter}${parseInt(phoneNumber.slice(-3))}`,
         });
 
         await service.save();
         await socket.sendMessage(remoteJid, {
-          text: `Data Tersimpan dengan ServiceID: ${service.serviceId}`,
+          text: `✅ *Data berhasil disimpan!*  
+          \n📌 *Service ID:* ${service.serviceId}`,
         });
       }
     } catch (error) {
@@ -78,14 +82,16 @@ export const handleAddCommand = async (
       await sendErrorMessage(
         socket,
         remoteJid,
-        "Terjadi kesalahan saat menyimpan data. Silakan coba lagi."
+        "⚠️ *Terjadi kesalahan saat menyimpan data.* Silakan coba lagi nanti."
       );
     }
   } else {
     await sendErrorMessage(
       socket,
       remoteJid,
-      "Format data tidak valid. Harap gunakan format:\n!add\nNama\nNo Hp\nTipe Handphone\nTipe Servis\nHarga"
+      `⚠️ *Format data tidak valid.*  
+      \nHarap gunakan format berikut:\n  
+      \`\`\`!add\nNama\nNomor HP\nTipe Handphone\nTipe Servis\nHarga\`\`\``
     );
   }
 };
