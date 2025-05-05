@@ -1,3 +1,5 @@
+import { capitalizeFirst } from "./capitalizeFirst";
+import { formatPriceToIDR } from "./formatPrice";
 import { getGreeting } from "./getGreetings";
 
 export const helpMessageForCustomer = `
@@ -377,3 +379,27 @@ export const validProviders = [
   "xl",
   "byu",
 ];
+
+export const confirmationDeleteProduct = ({
+  productId,
+  provider,
+  productType,
+  price,
+  description,
+}: {
+  productId: string;
+  provider: string;
+  productType: string;
+  price: number;
+  description: string;
+}) => `
+*Product Delete Confirmation*
+
+ID        : ${productId}
+Provider  : ${capitalizeFirst(provider)}
+Tipe      : ${capitalizeFirst(productType)}
+Harga     : ${formatPriceToIDR(price)}
+Deskripsi : ${capitalizeFirst(description)}
+
+*Ketik* _y_ *untuk hapus, atau* _n_ *untuk batal.* (30 detik)
+`;

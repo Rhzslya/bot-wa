@@ -11,8 +11,11 @@ import { helperChat } from "./utils/helperChat";
 import { checkProductPrice } from "./utils/productPrice";
 import { helloText } from "./utils/textMessage";
 import { greets } from "./utils/getGreetings";
-import { addProduct } from "./utils/productHandlers";
-import { isAdmin } from "./utils/userHelper";
+import {
+  addProduct,
+  deleteProduct,
+  handleDeleteConfirmation,
+} from "./utils/productHandlers";
 export const connectWhatsapp = async () => {
   const { state, saveCreds } = await useMultiFileAuthState("session");
   const socket = makeWASocket({
@@ -56,18 +59,20 @@ export const connectWhatsapp = async () => {
 
       await welcomeChat(socket, remoteJid, pushName, number);
 
-      if (greets.includes(pesan.toLowerCase())) {
-        await socket.sendMessage(remoteJid, {
-          text: helloText(pushName),
-        });
-      }
-
       if (pesan?.startsWith("!add_service")) {
         await handleAddCommand(socket, pesan, remoteJid);
       }
 
       if (pesan?.startsWith("!add_product")) {
         await addProduct(socket, pesan, remoteJid);
+      }
+
+      if (pesan?.startsWith("!delete")) {
+        await deleteProduct(socket, pesan, remoteJid);
+      }
+
+      if (pesan === "y" || pesan === "n") {
+        await handleDeleteConfirmation(socket, pesan, remoteJid);
       }
 
       if (pesan?.startsWith("!status")) {

@@ -1,5 +1,6 @@
 import { WASocket } from "@whiskeysockets/baileys";
 import User, { IUser } from "../models/userModel"; // Pastikan `IUser` didefinisikan di model
+import { helloText } from "./textMessage";
 
 const WELCOME_MESSAGE_INTERVAL = 24 * 60 * 60 * 1000; // 24 jam dalam milidetik
 
@@ -11,43 +12,36 @@ export const welcomeChat = async (
 ) => {
   const now = Date.now();
 
-  // Cari user di database dengan tipe eksplisit
+  // Cari user di database
   const user: IUser | null = await User.findOne({
     id: remoteJid,
   }).lean<IUser>();
 
-  if (!user) {
-    // Jika user belum ada, buat user baru
-    await User.findOneAndUpdate(
-      { id: remoteJid },
-      {
-        username: pushName,
-        number: number,
-        lastInteraction: now, // Simpan sebagai timestamp (angka)
-      },
-      { upsert: true, new: true }
-    );
+  let welcomeMessage = "";
 
-    await socket.sendMessage(remoteJid, {
-      text: `Halo, ${pushName}!\n\n🔅   Selamat Datang di Sinari Cell!   🔅\n\nKami menyediakan berbagai layanan perbaikan dan aksesori ponsel berkualitas. Jangan ragu untuk bertanya tentang layanan kami atau jika Anda membutuhkan bantuan lebih lanjut.\n\n✨Ada yang bisa kami bantu hari ini?✨\n\nJika Anda memerlukan bantuan penggunaan bot ini, ketik "!help" untuk informasi lebih lanjut.`,
-    });
+  if (!user) {
+    // User baru, kirim pesan welcome pertama kali
+    welcomeMessage = helloText(pushName);
   } else {
     const lastInteraction = user.lastInteraction
       ? new Date(user.lastInteraction).getTime()
       : 0;
 
-    // Jika terakhir berinteraksi lebih dari 24 jam yang lalu, kirim pesan sambutan lagi
     if (now - lastInteraction > WELCOME_MESSAGE_INTERVAL) {
-      await socket.sendMessage(remoteJid, {
-        text: `Halo, ${pushName}!\n\n🔅   Selamat Datang Kembali di Sinari Cell!   🔅\n\nKami menyediakan berbagai layanan perbaikan dan aksesori ponsel berkualitas. Jangan ragu untuk bertanya tentang layanan kami atau jika Anda membutuhkan bantuan lebih lanjut.\n\n✨Ada yang bisa kami bantu hari ini?✨\n\nJika Anda memerlukan bantuan penggunaan bot ini, ketik "!help" untuk informasi lebih lanjut.`,
-      });
+      // Jika user sudah ada tapi sudah lebih dari 24 jam
+      welcomeMessage = helloText(pushName);
     }
-
-    // Perbarui informasi user di database
-    await User.findOneAndUpdate(
-      { id: remoteJid },
-      { username: pushName, number: number, lastInteraction: now },
-      { new: true }
-    );
   }
+
+  // Kirim welcome chat jika ada pesan yang harus dikirim
+  if (welcomeMessage) {
+    await socket.sendMessage(remoteJid, { text: welcomeMessage });
+  }
+
+  // Simpan atau perbarui user di database (dilakukan sekali di akhir)
+  await User.findOneAndUpdate(
+    { id: remoteJid },
+    { username: pushName, number: number, lastInteraction: now },
+    { upsert: true, new: true }
+  );
 };
