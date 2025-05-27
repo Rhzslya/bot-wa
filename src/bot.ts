@@ -9,8 +9,6 @@ import { getStatusService } from "./utils/getStatus";
 import { updateStatus } from "./utils/updateStatus";
 import { helperChat } from "./utils/helperChat";
 import { checkProductPrice } from "./utils/productPrice";
-import { helloText } from "./utils/textMessage";
-import { greets } from "./utils/getGreetings";
 import {
   addProduct,
   deleteProduct,

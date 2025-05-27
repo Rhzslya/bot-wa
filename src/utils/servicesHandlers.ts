@@ -73,8 +73,7 @@ export const handleAddCommand = async (
 
         await service.save();
         await socket.sendMessage(remoteJid, {
-          text: `✅ *Data berhasil disimpan!*  
-          \n📌 *Service ID:* ${service.serviceId}`,
+          text: `*Data berhasil disimpan!*\n*Service ID :* ${service.serviceId}`,
         });
       }
     } catch (error) {
@@ -82,16 +81,18 @@ export const handleAddCommand = async (
       await sendErrorMessage(
         socket,
         remoteJid,
-        "⚠️ *Terjadi kesalahan saat menyimpan data.* Silakan coba lagi nanti."
+        "*Terjadi kesalahan saat menyimpan data.* Silakan coba lagi nanti."
       );
     }
   } else {
     await sendErrorMessage(
       socket,
       remoteJid,
-      `⚠️ *Format data tidak valid.*  
-      \nHarap gunakan format berikut:\n  
-      \`\`\`!add\nNama\nNomor HP\nTipe Handphone\nTipe Servis\nHarga\`\`\``
+      `*Format data tidak valid.*\n` +
+        `Harap gunakan format berikut:\n\n` +
+        "```" +
+        `!add_service\nNama\nNomor HP\nTipe Handphone\nTipe Servis\nHarga` +
+        "```"
     );
   }
 };

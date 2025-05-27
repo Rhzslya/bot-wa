@@ -4,7 +4,6 @@ import Products from "../models/productSchema";
 import { confirmationDeleteProduct, validProviders } from "./textMessage";
 import { isValidationInt, isValidProductId } from "./validation";
 import { capitalizeFirst } from "./capitalizeFirst";
-import { formatPriceToIDR } from "./formatPrice";
 
 export const addProduct = async (
   socket: WASocket,
@@ -13,8 +12,9 @@ export const addProduct = async (
 ) => {
   const parts = pesan.split("\n");
 
-  if (parts.length > 5) {
-    const [_, productId, provider, type, sellPrice, ...descArr] = parts;
+  if (parts.length > 6) {
+    const [_, productId, provider, type, sellPrice, basePrice, ...descArr] =
+      parts;
     const number = remoteJid.split("@")[0];
     const isUserAdmin = await isAdmin(number);
     const description = descArr.join(" ").trim();
@@ -50,16 +50,25 @@ export const addProduct = async (
       return;
     }
 
-    if (!["pulsa", "paket internet"].includes(lowerType)) {
+    if (!["pulsa", "internet"].includes(lowerType)) {
       await sendErrorMessage(
         socket,
         remoteJid,
-        "*Tipe produk* harus _pulsa_ atau _paket internet_."
+        "*Tipe produk* harus _pulsa_ atau _internet_."
       );
       return;
     }
 
     if (!isValidationInt(sellPrice.trim())) {
+      await sendErrorMessage(
+        socket,
+        remoteJid,
+        "*Harga* harus berupa *angka positif*."
+      );
+      return;
+    }
+
+    if (!isValidationInt(basePrice.trim())) {
       await sendErrorMessage(
         socket,
         remoteJid,
@@ -79,12 +88,13 @@ export const addProduct = async (
         provider: formattedProvider,
         type: lowerType,
         sellPrice: Number(sellPrice),
+        basePrice: Number(basePrice),
         description,
       });
 
       await newProduct.save();
       await socket.sendMessage(remoteJid, {
-        text: `Produk *${productId.toUpperCase()}* berhasil ditambahkan! 🎉`,
+        text: `Produk *${productId.toUpperCase()}* berhasil ditambahkan!`,
       });
     } catch (error: any) {
       if (error.code === 11000) {
@@ -98,7 +108,7 @@ export const addProduct = async (
         await sendErrorMessage(
           socket,
           remoteJid,
-          "⚠️ *Terjadi kesalahan* saat menyimpan produk. _Silakan coba lagi nanti._"
+          "*Terjadi kesalahan* saat menyimpan produk. _Silakan coba lagi nanti._"
         );
       }
     }
@@ -106,13 +116,25 @@ export const addProduct = async (
     await sendErrorMessage(
       socket,
       remoteJid,
-      "❌ *Format data tidak valid.*\n\nHarap gunakan format berikut:\n\n```!product\nID Produk\nProvider (Telkomsel/Axis/dll)\nTipe Produk (pulsa/paket internet)\nHarga Jual\nDeskripsi```"
+      `*Format data tidak valid.*
+Harap gunakan format berikut
+\`\`\`
+!add_product
+ID Produk
+Provider (Telkomsel/Axis/dll)
+Tipe Produk (pulsa/internet)
+Harga Jual
+Harga Modal
+Deskripsi
+\`\`\``
     );
+    return;
+
     return;
   }
 };
 
-const deleteSessions = new Map(); // Menyimpan sesi konfirmasi delete
+const deleteSessions = new Map();
 
 export const deleteProduct = async (
   socket: WASocket,
@@ -121,7 +143,11 @@ export const deleteProduct = async (
 ) => {
   const parts = pesan.trim().split(" ");
   if (parts.length !== 2) {
-    await sendErrorMessage(socket, remoteJid, "❌ Format: !delete <ID Produk>");
+    await sendErrorMessage(
+      socket,
+      remoteJid,
+      "Format : ```!delete <ID Produk>```"
+    );
     return;
   }
 
@@ -129,7 +155,11 @@ export const deleteProduct = async (
   const userNumber = remoteJid.split("@")[0];
 
   if (!(await isAdmin(userNumber))) {
-    await sendErrorMessage(socket, remoteJid, "❌ Anda tidak punya izin.");
+    await sendErrorMessage(
+      socket,
+      remoteJid,
+      "Anda tidak punya izin untuk menggunakan layanan ini."
+    );
     return;
   }
 
@@ -138,12 +168,11 @@ export const deleteProduct = async (
     await sendErrorMessage(
       socket,
       remoteJid,
-      `⚠️ Produk ${productId} tidak ditemukan.`
+      `Produk ${productId} tidak ditemukan.`
     );
     return;
   }
 
-  // Simpan sesi konfirmasi
   deleteSessions.set(remoteJid, productId);
 
   await socket.sendMessage(remoteJid, {
@@ -152,26 +181,25 @@ export const deleteProduct = async (
       provider: product.provider,
       productType: product.type,
       price: product.sellPrice,
+      basePrice: product.basePrice,
       description: product.description,
     }),
   });
 
-  // Hapus sesi setelah 30 detik jika tidak ada respon
   setTimeout(() => {
     if (deleteSessions.has(remoteJid)) {
       deleteSessions.delete(remoteJid);
-      socket.sendMessage(remoteJid, { text: "⌛ Waktu habis. Dibatalkan." });
+      socket.sendMessage(remoteJid, { text: "Waktu habis. Dibatalkan." });
     }
   }, 30000);
 };
 
-// Handler global untuk menangani respon y/n
 export const handleDeleteConfirmation = async (
   socket: WASocket,
   pesan: string,
   remoteJid: string
 ) => {
-  if (!deleteSessions.has(remoteJid)) return; // Tidak ada sesi konfirmasi aktif
+  if (!deleteSessions.has(remoteJid)) return;
 
   const productId = deleteSessions.get(remoteJid);
   if (pesan === "y") {
@@ -191,7 +219,7 @@ export const handleDeleteConfirmation = async (
     });
   }
 
-  deleteSessions.delete(remoteJid); // Hapus sesi setelah respon
+  deleteSessions.delete(remoteJid);
 };
 
 export const removeProduct = async (productId: string): Promise<boolean> => {
@@ -200,14 +228,14 @@ export const removeProduct = async (productId: string): Promise<boolean> => {
 
     if (result.deletedCount > 0) {
       console.log(`Produk ${productId} berhasil dihapus.`);
-      return true; // Berhasil dihapus
+      return true;
     } else {
       console.log(`Produk ${productId} tidak ditemukan.`);
-      return false; // Produk tidak ditemukan
+      return false;
     }
   } catch (error) {
     console.error("Error saat menghapus produk:", error);
-    return false; // Gagal menghapus
+    return false;
   }
 };
 

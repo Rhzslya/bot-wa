@@ -65,7 +65,11 @@ export const updateStatus = async (
     }
   } else {
     await socket.sendMessage(remoteJid, {
-      text: "Format pesan tidak valid. Gunakan format: '-serviceId-statusNumber'.",
+      text: `*Format pesan tidak valid.*
+\`\`\`
+Format: !update <ServiceID> <Status Number>
+Contoh: !update 12345678 1
+\`\`\``,
     });
   }
 };

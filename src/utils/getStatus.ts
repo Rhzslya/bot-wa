@@ -22,20 +22,29 @@ export const getStatusService = async (
 
       if (service) {
         const userNumber = remoteJid.split("@")[0];
-
-        // Verifikasi apakah nomor telepon pengirim pesan sama dengan nomor telepon yang terkait dengan layanan ini
         const user = await User.findOne({ number: userNumber });
-
-        // Format harga sebagai IDR
         const formattedPrice = formatPriceToIDR(service.price);
 
-        if (!(user && (user.isAdmin || user.number === service.number))) {
+        if (
+          !(
+            user &&
+            (user.isAdmin || user.number.trim() === service.number.trim())
+          )
+        ) {
           await socket.sendMessage(remoteJid, {
             text: "Anda tidak memiliki izin untuk memeriksa status layanan ini.",
           });
         } else {
           await socket.sendMessage(remoteJid, {
-            text: `ServiceID : ${service.serviceId}\nNama : ${service.username}\nTipe Handphone : ${service.modelType}\nTipe Servis : ${service.serviceType}\nHarga Servis : ${formattedPrice}\nStatus : ${service.status}`,
+            text: `*Data Servis*
+\`\`\`
+ServiceID       : ${service.serviceId}
+Nama            : ${service.username}
+Tipe Handphone  : ${service.modelType}
+Tipe Servis     : ${service.serviceType}
+Harga Servis    : ${formattedPrice}
+Status          : ${service.status}
+\`\`\``,
           });
         }
       } else {

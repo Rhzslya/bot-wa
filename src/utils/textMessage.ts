@@ -2,20 +2,19 @@ import { capitalizeFirst } from "./capitalizeFirst";
 import { formatPriceToIDR } from "./formatPrice";
 import { getGreeting } from "./getGreetings";
 
-export const helpMessageForCustomer = `
-🌟 *Sinari Cell Bot Help* 🌟
+export const helpMessageForCustomer = `*Sinari Cell Bot Help*
 
 Selamat datang di layanan bantuan Sinari Cell! Berikut adalah daftar perintah yang bisa Anda gunakan:
 
 1.Periksa status layanan
-!status(spasi)[ServiceID]
+\`\`\`!status(spasi)[ServiceID]\`\`\`
   
-_Contoh:_ !status(spasi)12345
+\`\`\`_Contoh:_ !status(spasi)12345\`\`\`
 
 2.Menampilkan Harga Produk
-!harga(spasi)[Nama Produk]
+\`\`\`!harga(spasi)[Nama Produk]\`\`\`
 
-_Contoh:_ !harga(spasi)indosat
+\`\`\`_Contoh:_ !harga(spasi)indosat\`\`\`
 
 Note: Produk Tersedia
 - Telkomsel
@@ -32,55 +31,54 @@ Note: Produk Tersedia
 - BRI
 
 3.Menampilkan pesan bantuan ini.
-!help
+\`\`\`!help\`\`\`
 
 Jika Anda membutuhkan bantuan lebih lanjut, jangan ragu untuk menghubungi kami!
 
 Terima kasih telah menggunakan layanan kami. 😊
 
-🔹 *Sinari Cell* 🔹
+*Sinari Cell*
 `;
 
-export const helpMessageForAdmin = `
-🌟 *Sinari Cell Bot Help* 🌟
+export const helpMessageForAdmin = `*Sinari Cell Bot Help*
 
 Selamat datang di layanan bantuan Sinari Cell! Berikut adalah daftar perintah yang bisa Anda gunakan:
 
-1.Tambahkan layanan baru.
-!add 
+1.Tambahkan Service baru.
+\`\`\`!add_service
 [Nama] 
 [Nomor Handphone] 
 [Tipe Handphone] 
 [Tipe Servis] 
-[Harga] 
+[Harga]\`\`\`
 
-_Contoh:_  
-!add
+\`\`\`_Contoh:_
+!add_service
 Sinari 
 08123456789 
 Samsung A51 
 Ganti LCD 
-500000
+500000\`\`\`
 
 2.Periksa status layanan
-!status(spasi)[ServiceID]
+\`\`\`!status(spasi)[ServiceID]\`\`\`
   
-_Contoh:_ !status(spasi)12345
+\`\`\`_Contoh:_ !status(spasi)12345\`\`\`
 
 3.Perbarui status layanan.
-!update(spasi)[ServiceID](spasi)[StatusNumber]
+\`\`\`!update(spasi)[ServiceID](spasi)[StatusNumber]\`\`\`
 
-_Contoh:_ !update(spasi)12345(spasi)1
+\`\`\`_Contoh:_ !update(spasi)12345(spasi)1
 ➤ StatusNumber: 
 0 untuk _"Belum Selesai"_ 
 1 untuk _"Selesai"_
 2 untuk _"Dalam Proses"_
-3 untuk _"Tidak Bisa Diperbaiki"_
+3 untuk _"Tidak Bisa Diperbaiki"_\`\`\`
 
 4.Menampilkan Harga
-!harga(spasi)[Nama Provider]
+\`\`\`!harga(spasi)[Nama Provider]\`\`\`
 
-_Contoh:_ !harga(spasi)indosat
+\`\`\`_Contoh:_ !harga(spasi)indosat\`\`\`
 
 Note: Produk Tersedia
 - Telkomsel
@@ -97,13 +95,13 @@ Note: Produk Tersedia
 - BRI
 
 5.Menampilkan pesan bantuan ini.
-!help
+\`\`\`!help\`\`\`
 
 Jika Anda membutuhkan bantuan lebih lanjut, jangan ragu untuk menghubungi kami!
 
 Terima kasih telah menggunakan layanan kami. 😊
 
-🔹 *Sinari Cell* 🔹
+*Sinari Cell*
 `;
 
 export const axisProduct = `
@@ -385,21 +383,51 @@ export const confirmationDeleteProduct = ({
   provider,
   productType,
   price,
+  basePrice,
   description,
 }: {
   productId: string;
   provider: string;
   productType: string;
   price: number;
+  basePrice?: number;
   description: string;
-}) => `
-*Product Delete Confirmation*
+}) => {
+  const NBSP = "\u00A0"; // non-breaking space
 
-ID        : ${productId}
-Provider  : ${capitalizeFirst(provider)}
-Tipe      : ${capitalizeFirst(productType)}
-Harga     : ${formatPriceToIDR(price)}
-Deskripsi : ${capitalizeFirst(description)}
+  const rows = [
+    { label: "ID", value: productId },
+    { label: "Provider", value: capitalizeFirst(provider) },
+    { label: "Tipe", value: capitalizeFirst(productType) },
+    { label: "Harga", value: formatPriceToIDR(price) },
+    {
+      label: "Base Price",
+      value: basePrice ? formatPriceToIDR(basePrice) : "Tidak ada",
+    },
+    { label: "Deskripsi", value: capitalizeFirst(description) },
+  ];
 
-*Ketik* _y_ *untuk hapus, atau* _n_ *untuk batal.* (30 detik)
-`;
+  const maxLabelLength = Math.max(...rows.map((row) => row.label.length));
+  const spacing = 4;
+
+  let lines = rows.map((row) => {
+    // pad label with NBSP
+    const paddedLabel =
+      row.label +
+      NBSP.repeat(maxLabelLength - row.label.length + spacing) +
+      ":";
+    return `${paddedLabel}${NBSP.repeat(2)}${row.value}`;
+  });
+
+  let result = [
+    "*Product Delete Confirmation*",
+    "```",
+    "",
+    ...lines,
+    "",
+    "Ketik _y_ untuk hapus, atau _n_ untuk batal. (30 detik)",
+    "```",
+  ].join("\n");
+
+  return result;
+};
