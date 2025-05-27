@@ -107,7 +107,6 @@ Terima kasih telah menggunakan layanan kami. 😊
 export const helloText = (pushName: string) =>
   `*Halo ${getGreeting()}, ${pushName}!* \n\nSelamat datang di *Sinari Cell.*\n\nKami menyediakan berbagai layanan perbaikan untuk *smartphone, laptop, dan komputer*, serta menyediakan *sparepart berkualitas* untuk perangkat tersebut. Jangan ragu untuk bertanya mengenai layanan kami atau jika Anda membutuhkan bantuan lebih lanjut.\n\n_Apa yang bisa kami bantu hari ini?_ \n\nUntuk informasi lebih lanjut tentang penggunaan bot ini, silakan ketik *"!help".*`;
 
-// Daftar provider yang valid
 export const validProviders = [
   "telkomsel",
   "axis",
@@ -116,7 +115,31 @@ export const validProviders = [
   "smartfren",
   "xl",
   "byu",
+  "pln",
 ];
+
+export const validProvidersWithFee = [
+  "dana",
+  "shopee",
+  "ovo",
+  "gopay",
+  "pln",
+  "bri",
+  "otherBanks",
+];
+
+export const eWalletProviders = ["dana", "shopee", "ovo", "gopay"];
+export const pulsaInternetProviders = [
+  "telkomsel",
+  "axis",
+  "indosat",
+  "tri",
+  "smartfren",
+  "xl",
+  "byu",
+];
+export const bankProviders = ["bri", "otherBanks"];
+export const listrikProviders = ["pln"];
 
 export const confirmationDeleteProduct = ({
   productId,

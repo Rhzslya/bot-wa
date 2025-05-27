@@ -11,6 +11,7 @@ import { helperChat } from "./utils/helperChat";
 import { checkProductPrice } from "./utils/productPrice";
 import {
   addProduct,
+  addProductRange,
   deleteProduct,
   handleDeleteConfirmation,
 } from "./utils/productHandlers";
@@ -63,6 +64,10 @@ export const connectWhatsapp = async () => {
 
       if (pesan?.startsWith("!add_product")) {
         await addProduct(socket, pesan, remoteJid);
+      }
+
+      if (pesan?.startsWith("!add_fee_product")) {
+        await addProductRange(socket, pesan, remoteJid);
       }
 
       if (pesan?.startsWith("!delete")) {

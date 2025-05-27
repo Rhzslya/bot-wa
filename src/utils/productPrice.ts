@@ -51,7 +51,7 @@ export const checkProductPrice = async (
     });
 
     if (products.length > 0) {
-      let responseMessage = `Berikut adalah harga Pulsa dan Paket untuk Produk *${capitalizeFirst(
+      let responseMessage = `Berikut adalah Daftar Harga untuk Produk *${capitalizeFirst(
         providerName
       )}*\n\n`;
 
@@ -60,6 +60,18 @@ export const checkProductPrice = async (
       );
       const internetProducts = products.filter(
         (product) => product.type?.toLowerCase() === "internet"
+      );
+
+      const eWalletProducts = products.filter(
+        (product) => product.type?.toLowerCase() === "e-wallet"
+      );
+
+      const bankProducts = products.filter(
+        (product) => product.type?.toLowerCase() === "bank"
+      );
+
+      const plnProducts = products.filter(
+        (product) => product.type?.toLowerCase() === "listrik"
       );
 
       if (pulsaProducts.length > 0) {
@@ -100,6 +112,44 @@ export const checkProductPrice = async (
 
         responseMessage += "```\n";
       }
+      if (plnProducts.length > 0) {
+        responseMessage += "*Daftar Pulsa Listrik*\n\n```";
+
+        const sortedListrik = plnProducts.sort(
+          (a, b) => a.sellPrice - b.sellPrice
+        );
+
+        let maxNominalLength = 0;
+        const nominalDisplays = sortedListrik.map((product) => {
+          const nominal = product.basePrice
+            ? parseInt(product.basePrice.toString()).toLocaleString("id-ID")
+            : capitalizeFirst(product.description);
+          if (nominal.length > maxNominalLength) {
+            maxNominalLength = nominal.length;
+          }
+          return nominal;
+        });
+
+        const NBSP = "\u00A0";
+        const spacing = 4;
+
+        sortedListrik.forEach((product, index) => {
+          const nominal = nominalDisplays[index].padStart(
+            maxNominalLength,
+            NBSP
+          );
+          const paddedNominal = nominal.padEnd(
+            maxNominalLength + spacing,
+            NBSP
+          );
+          const line = `• ${paddedNominal}: ${formatPriceToIDR(
+            product.sellPrice
+          )}`;
+          responseMessage += line + "\n";
+        });
+
+        responseMessage += "```\n";
+      }
       if (internetProducts.length > 0) {
         responseMessage += "*Daftar Paket Internet*\n\n```";
 
@@ -121,7 +171,6 @@ export const checkProductPrice = async (
         const NBSP = "\u00A0";
         const spacing = 1;
 
-        // Ambil prefix huruf dari productId (contoh: AX1 -> AX, AXT12 -> AXT)
         const getLettersOnly = (productId) => {
           const match = productId.match(/^[A-Za-z]+/);
           return match ? match[0] : productId;
@@ -151,19 +200,45 @@ export const checkProductPrice = async (
 
         responseMessage += "```\n";
       }
+      if (eWalletProducts.length > 0) {
+        responseMessage += "*Daftar Harga*\n\n```";
 
-      if (
-        pulsaProducts.length === 0 &&
-        internetProducts.length === 0 &&
-        products.length > 0
-      ) {
-        responseMessage += `*Produk Lainnya:*\n`;
-        products.forEach((product) => {
-          responseMessage += `• *${product.productId}* - ${capitalizeFirst(
-            product.description
-          )}\n`;
-          responseMessage += `  ${formatPriceToIDR(product.sellPrice)}\n\n`;
+        const sortedEWallet = eWalletProducts.sort(
+          (a, b) => a.minPrice - b.minPrice
+        );
+
+        sortedEWallet.forEach((product) => {
+          const minPrice = product.minPrice
+            ? formatPriceToIDR(product.minPrice)
+            : "-";
+          const maxPrice = product.maxPrice
+            ? formatPriceToIDR(product.maxPrice)
+            : "-";
+          const fee = product.fee ? formatPriceToIDR(product.fee) : "-";
+          const line = `• ${minPrice} - ${maxPrice}, Fee: ${fee}`;
+          responseMessage += line + "\n";
         });
+
+        responseMessage += "```\n";
+      }
+      if (bankProducts.length > 0) {
+        responseMessage += "*Daftar Harga*\n\n```";
+
+        const sortedBank = bankProducts.sort((a, b) => a.minPrice - b.minPrice);
+
+        sortedBank.forEach((product) => {
+          const minPrice = product.minPrice
+            ? formatPriceToIDR(product.minPrice)
+            : "-";
+          const maxPrice = product.maxPrice
+            ? formatPriceToIDR(product.maxPrice)
+            : "-";
+          const fee = product.fee ? formatPriceToIDR(product.fee) : "-";
+          const line = `• ${minPrice} - ${maxPrice}, Fee: ${fee}`;
+          responseMessage += line + "\n";
+        });
+
+        responseMessage += "```\n";
       }
 
       await socket.sendMessage(remoteJid, { text: responseMessage });
