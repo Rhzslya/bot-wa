@@ -625,6 +625,8 @@ Deskripsi   : ${product.description}
 Harap gunakan format berikut
 \`\`\`
 !detail_product(spasi)IDProduk
+
+_Contoh:_ !detail_product AX5
 \`\`\``
     );
     return;
