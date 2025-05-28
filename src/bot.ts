@@ -11,9 +11,12 @@ import { helperChat } from "./utils/helperChat";
 import { checkProductPrice } from "./utils/productPrice";
 import {
   addProduct,
-  addProductRange,
+  addFeeProduct,
   deleteProduct,
   handleDeleteConfirmation,
+  updateFeeProduct,
+  updateProduct,
+  detailProduct,
 } from "./utils/productHandlers";
 export const connectWhatsapp = async () => {
   const { state, saveCreds } = await useMultiFileAuthState("session");
@@ -67,7 +70,19 @@ export const connectWhatsapp = async () => {
       }
 
       if (pesan?.startsWith("!add_fee_product")) {
-        await addProductRange(socket, pesan, remoteJid);
+        await addFeeProduct(socket, pesan, remoteJid);
+      }
+
+      if (pesan?.startsWith("!update_product")) {
+        await updateProduct(socket, pesan, remoteJid);
+      }
+
+      if (pesan.startsWith("!update_fee_product")) {
+        await updateFeeProduct(socket, pesan, remoteJid);
+      }
+
+      if (pesan?.startsWith("!detail_product")) {
+        await detailProduct(socket, pesan, remoteJid);
       }
 
       if (pesan?.startsWith("!delete")) {
@@ -82,7 +97,7 @@ export const connectWhatsapp = async () => {
         await getStatusService(socket, pesan, remoteJid);
       }
 
-      if (pesan?.startsWith("!update")) {
+      if (pesan?.startsWith("!update_service")) {
         await updateStatus(socket, pesan, remoteJid);
       }
 

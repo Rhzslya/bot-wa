@@ -60,12 +60,90 @@ Samsung A51
 Ganti LCD 
 500000\`\`\`
 
-2.Periksa status layanan
+2.Tambahkan Produk baru.
+\`\`\`!add_product
+ID Produk
+Provider (Telkomsel/Axis/dll)
+Tipe Produk (pulsa/internet)
+Harga Modal
+Harga Jual
+Deskripsi\`\`\`
+
+\`\`\`_Contoh:_
+!add_product
+AX5 
+Axis 
+Pulsa 
+5000
+8000
+Pulsa 5K
+\`\`\`
+
+\`\`\`Note : Semua baris setelah harga jual akan dianggap sebagai bagian dari deskripsi.\`\`\`
+
+3.Tambahkan Produk E-Wallet atau Bank baru.
+\`\`\`!add_fee_product
+ID Produk
+Provider (Dana/OVO/BRI/etc)
+Tipe Produk (e-wallet/bank)
+Harga Min
+Harga Maks
+Fee
+Deskripsi\`\`\`
+
+\`\`\`_Contoh:_
+!add_product
+DN100
+Dana
+e-wallet
+10000 
+100000
+3000
+Dana 10K - 100K
+\`\`\`
+
+\`\`\`Note : Semua baris setelah Fee akan dianggap sebagai bagian dari deskripsi.\`\`\`
+
+4.Update Harga Produk
+\`\`\`!update_product
+ID Produk
+Harga Jual Baru
+Deskripsi\`\`\`
+
+\`\`\`_Contoh:_
+!update_product
+AX5 
+5000
+Pulsa 5K  
+\`\`\`    
+
+\`\`\`Note : Semua baris setelah Harga Jual akan dianggap sebagai bagian dari deskripsi.\`\`\`
+
+5.Update Produk E-Wallet atau Bank
+\`\`\`!update_fee_product
+ID Produk
+Harga Min Baru
+Harga Maks Baru
+Fee Baru
+Deskripsi\`\`\`
+
+\`\`\`_Contoh:_
+!update_product
+DN100
+10000 
+100000
+3000
+Dana 10K - 100K  
+\`\`\`  
+
+\`\`\`Note : Semua baris setelah Fee akan dianggap sebagai bagian dari deskripsi.\`\`\`
+
+6.Periksa status layanan
 \`\`\`!status(spasi)[ServiceID]\`\`\`
   
 \`\`\`_Contoh:_ !status(spasi)12345\`\`\`
 
-3.Perbarui status layanan.
+7.Perbarui status layanan.
 \`\`\`!update(spasi)[ServiceID](spasi)[StatusNumber]\`\`\`
 
 \`\`\`_Contoh:_ !update(spasi)12345(spasi)1
@@ -75,7 +153,7 @@ Ganti LCD
 2 untuk _"Dalam Proses"_
 3 untuk _"Tidak Bisa Diperbaiki"_\`\`\`
 
-4.Menampilkan Harga
+8.Menampilkan Harga
 \`\`\`!harga(spasi)[Nama Provider]\`\`\`
 
 \`\`\`_Contoh:_ !harga(spasi)indosat\`\`\`
@@ -94,12 +172,8 @@ Note: Produk Tersedia
 - PLN
 - BRI
 
-5.Menampilkan pesan bantuan ini.
+9.Menampilkan pesan bantuan ini.
 \`\`\`!help\`\`\`
-
-Jika Anda membutuhkan bantuan lebih lanjut, jangan ragu untuk menghubungi kami!
-
-Terima kasih telah menggunakan layanan kami. 😊
 
 *Sinari Cell*
 `;

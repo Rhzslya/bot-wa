@@ -17,7 +17,6 @@ export const getStatusService = async (
     }
 
     try {
-      // Gunakan serviceId sebagai string, jangan di-parse ke integer
       const service = await Service.findOne({ serviceId: serviceId.trim() });
 
       if (service) {

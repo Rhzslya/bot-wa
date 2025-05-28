@@ -12,6 +12,7 @@ import {
 } from "./textMessage";
 import { isValidationInt, isValidProductId } from "./validation";
 import { capitalizeFirst } from "./capitalizeFirst";
+import { formatPriceToIDR } from "./formatPrice";
 
 export const addProduct = async (
   socket: WASocket,
@@ -21,7 +22,7 @@ export const addProduct = async (
   const parts = pesan.split("\n");
 
   if (parts.length > 6) {
-    const [_, productId, provider, type, sellPrice, basePrice, ...descArr] =
+    const [_, productId, provider, type, basePrice, sellPrice, ...descArr] =
       parts;
     const number = remoteJid.split("@")[0];
     const isUserAdmin = await isAdmin(number);
@@ -157,15 +158,15 @@ Harap gunakan format berikut
 ID Produk
 Provider (Telkomsel/Axis/dll)
 Tipe Produk (pulsa/internet)
-Harga Jual
 Harga Modal
+Harga Jual
 Deskripsi
 \`\`\``
     );
     return;
   }
 };
-export const addProductRange = async (
+export const addFeeProduct = async (
   socket: WASocket,
   pesan: string,
   remoteJid: string
@@ -328,6 +329,308 @@ Deskripsi
   }
 };
 
+export const updateProduct = async (
+  socket: WASocket,
+  pesan: string,
+  remoteJid: string
+) => {
+  const parts = pesan.split("\n");
+
+  if (parts.length > 3) {
+    const [_, productId, sellPrice, ...descArr] = parts;
+    const number = remoteJid.split("@")[0];
+    const isUserAdmin = await isAdmin(number);
+    const description = descArr.join(" ").trim();
+
+    if (!isUserAdmin) {
+      await sendErrorMessage(
+        socket,
+        remoteJid,
+        "*Anda tidak memiliki izin untuk mengupdate produk.*"
+      );
+      return;
+    }
+
+    if (!isValidationInt(sellPrice.trim())) {
+      await sendErrorMessage(
+        socket,
+        remoteJid,
+        "*Harga Jual* harus berupa *angka positif*."
+      );
+      return;
+    }
+
+    if (!description) {
+      await sendErrorMessage(socket, remoteJid, "*Deskripsi* wajib diisi.");
+      return;
+    }
+
+    try {
+      const product = await Products.findOne({
+        productId: productId.toUpperCase(),
+      });
+
+      if (!product) {
+        await sendErrorMessage(
+          socket,
+          remoteJid,
+          `Produk dengan ID *${productId.toUpperCase()}* tidak ditemukan.`
+        );
+        return;
+      }
+
+      if (
+        product.type !== "pulsa" &&
+        product.type !== "internet" &&
+        product.type !== "listrik"
+      ) {
+        await sendErrorMessage(
+          socket,
+          remoteJid,
+          `Tipe produk *${product.type}* tidak dapat diupdate dengan perintah ini.`
+        );
+        return;
+      }
+
+      product.sellPrice = Number(sellPrice);
+      product.description = description;
+
+      await product.save();
+
+      await socket.sendMessage(remoteJid, {
+        text: `Produk *${productId.toUpperCase()}* berhasil diperbarui!\n\nHarga Jual: *${sellPrice}`,
+      });
+    } catch (error) {
+      console.error("Error saat mengupdate data produk:", error);
+      console.log(productId);
+      await sendErrorMessage(
+        socket,
+        remoteJid,
+        "*Terjadi kesalahan* saat mengupdate produk. _Silakan coba lagi nanti._"
+      );
+    }
+  } else {
+    await sendErrorMessage(
+      socket,
+      remoteJid,
+      `*Format data tidak valid.*
+Harap gunakan format berikut
+\`\`\`
+!update_product
+IDProduk
+Harga Jual Baru
+Deskripsi
+\`\`\``
+    );
+    return;
+  }
+};
+
+export const updateFeeProduct = async (
+  socket: WASocket,
+  pesan: string,
+  remoteJid: string
+) => {
+  const parts = pesan.split("\n");
+
+  if (parts.length === 5) {
+    const [_, productId, minPrice, maxPrice, fee] = parts;
+    const number = remoteJid.split("@")[0];
+    const isUserAdmin = await isAdmin(number);
+
+    if (!isUserAdmin) {
+      await sendErrorMessage(
+        socket,
+        remoteJid,
+        "*Anda tidak memiliki izin untuk mengupdate produk.*"
+      );
+      return;
+    }
+
+    if (!isValidationInt(minPrice.trim())) {
+      await sendErrorMessage(
+        socket,
+        remoteJid,
+        "*Harga Min* harus berupa *angka positif*."
+      );
+      return;
+    }
+
+    if (!isValidationInt(maxPrice.trim())) {
+      await sendErrorMessage(
+        socket,
+        remoteJid,
+        "*Harga Max* harus berupa *angka positif*."
+      );
+      return;
+    }
+
+    if (!isValidationInt(fee.trim())) {
+      await sendErrorMessage(
+        socket,
+        remoteJid,
+        "*Fee* harus berupa *angka positif*."
+      );
+      return;
+    }
+
+    try {
+      const product = await Products.findOne({
+        productId: productId.toUpperCase(),
+      });
+
+      if (!product) {
+        await sendErrorMessage(
+          socket,
+          remoteJid,
+          `Produk dengan ID *${productId.toUpperCase()}* tidak ditemukan.`
+        );
+        return;
+      }
+
+      if (product.type !== "e-wallet" && product.type !== "bank") {
+        await sendErrorMessage(
+          socket,
+          remoteJid,
+          `Tipe produk *${product.type}* tidak dapat diupdate dengan perintah ini.`
+        );
+        return;
+      }
+
+      product.minPrice = Number(minPrice);
+      product.maxPrice = Number(maxPrice);
+      product.fee = Number(fee);
+
+      await product.save();
+
+      await socket.sendMessage(remoteJid, {
+        text: `Produk *${productId.toUpperCase()}* berhasil diperbarui!\n\nHarga Min: *${minPrice}*\nHarga Max: *${maxPrice}*\nFee: *${fee}*`,
+      });
+    } catch (error) {
+      console.error("Error saat mengupdate data produk:", error);
+      console.log(productId);
+      await sendErrorMessage(
+        socket,
+        remoteJid,
+        "*Terjadi kesalahan* saat mengupdate produk. _Silakan coba lagi nanti._"
+      );
+    }
+  } else {
+    await sendErrorMessage(
+      socket,
+      remoteJid,
+      `*Format data tidak valid.*
+Harap gunakan format berikut
+\`\`\`
+!update_product
+IDProduk
+HargaMin
+HargaMax
+Fee
+\`\`\``
+    );
+    return;
+  }
+};
+
+export const detailProduct = async (
+  socket: WASocket,
+  pesan: string,
+  remoteJid: string
+) => {
+  const parts = pesan.split(" ");
+  if (parts.length === 2) {
+    const number = remoteJid.split("@")[0];
+    const isUserAdmin = await isAdmin(number);
+    const [_, productId] = parts;
+
+    if (!isUserAdmin) {
+      await sendErrorMessage(
+        socket,
+        remoteJid,
+        "*Anda tidak memiliki izin untuk mengupdate produk.*"
+      );
+      return;
+    }
+
+    try {
+      const product = await Products.findOne({
+        productId: productId.toUpperCase(),
+      });
+
+      if (!product) {
+        await sendErrorMessage(
+          socket,
+          remoteJid,
+          `Produk dengan ID *${productId.toUpperCase()}* tidak ditemukan.`
+        );
+        return;
+      }
+
+      let responseMessage = `*Detail Produk dengan ID ${productId.toUpperCase()}*\n`;
+
+      if (product.type === "e-wallet" || product.type === "bank") {
+        responseMessage += `
+\`\`\`
+ID Produk   : ${product.productId}
+Provider    : ${capitalizeFirst(product.provider)}
+Tipe Produk : ${product.type}
+Harga Min   : ${formatPriceToIDR(product.minPrice)}
+Harga Maks  : ${formatPriceToIDR(product.maxPrice)}
+Fee         : ${formatPriceToIDR(product.fee)}
+Deskripsi   : ${product.description}
+\`\`\`
+`;
+      }
+
+      if (
+        product.type === "pulsa" ||
+        product.type === "internet" ||
+        product.type === "listrik"
+      ) {
+        const formattedProvider =
+          product.type === "listrik"
+            ? product.provider.toUpperCase()
+            : capitalizeFirst(product.provider);
+
+        responseMessage += `
+\`\`\`
+ID Produk   : ${product.productId}
+Provider    : ${formattedProvider}
+Tipe Produk : ${product.type}
+Harga Modal : ${formatPriceToIDR(product.basePrice)}
+Harga Jual  : ${formatPriceToIDR(product.sellPrice)}
+Deskripsi   : ${product.description}
+\`\`\`
+`;
+      }
+
+      await socket.sendMessage(remoteJid, {
+        text: responseMessage,
+      });
+    } catch (error) {
+      console.error("Error saat mengupdate data produk:", error);
+      console.log(productId);
+      await sendErrorMessage(
+        socket,
+        remoteJid,
+        "*Terjadi kesalahan* saat mengupdate produk. _Silakan coba lagi nanti._"
+      );
+    }
+  } else {
+    await sendErrorMessage(
+      socket,
+      remoteJid,
+      `*Format data tidak valid.*
+Harap gunakan format berikut
+\`\`\`
+!detail_product(spasi)IDProduk
+\`\`\``
+    );
+    return;
+  }
+};
+
 const deleteSessions = new Map();
 
 export const deleteProduct = async (
@@ -367,7 +670,6 @@ export const deleteProduct = async (
     return;
   }
 
-  // Simpan session dengan timeout
   const timeout = setTimeout(() => {
     if (deleteSessions.has(remoteJid)) {
       deleteSessions.delete(remoteJid);
@@ -399,7 +701,7 @@ export const handleDeleteConfirmation = async (
 
   const { productId, timeout } = session;
 
-  clearTimeout(timeout); // Stop timeout biar ga ada "Waktu habis"
+  clearTimeout(timeout);
 
   if (pesan === "y") {
     const success = await removeProduct(productId);
