@@ -18,25 +18,30 @@ import {
   updateProduct,
   detailProduct,
 } from "./utils/productHandlers";
+import * as qrcode from "qrcode-terminal";
 export const connectWhatsapp = async () => {
   const { state, saveCreds } = await useMultiFileAuthState("session");
   const socket = makeWASocket({
-    printQRInTerminal: true,
     auth: state,
     logger: pino({ level: "silent" }) as any,
   });
 
   socket.ev.on("creds.update", saveCreds);
 
-  socket.ev.on("connection.update", async (update) => {
-    const { connection, lastDisconnect } = update;
+  socket.ev.on("connection.update", (update) => {
+    const { connection, lastDisconnect, qr } = update;
+
+    if (qr) {
+      qrcode.generate(qr, { small: true });
+    }
+
     if (connection === "close") {
       const shouldReconnect =
         (lastDisconnect?.error as any)?.output?.statusCode !==
         DisconnectReason.loggedOut;
       if (shouldReconnect) {
         console.log("Reconnecting...");
-        await connectWhatsapp();
+        connectWhatsapp();
       } else {
         console.log("Connection closed. You are logged out.");
       }
