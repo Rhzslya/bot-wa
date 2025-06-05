@@ -92,7 +92,7 @@ Fee
 Deskripsi\`\`\`
 
 \`\`\`_Contoh:_
-!add_product
+!add_fee_product
 DN100
 Dana
 e-wallet

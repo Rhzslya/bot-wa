@@ -64,7 +64,7 @@ export const connectWhatsapp = async () => {
       const pushName = chat.pushName;
       const number = remoteJid?.split("@")[0];
 
-      await welcomeChat(socket, remoteJid, pushName, number);
+      // await welcomeChat(socket, remoteJid, pushName, number);
 
       if (pesan?.startsWith("!add_service")) {
         await handleAddCommand(socket, pesan, remoteJid);

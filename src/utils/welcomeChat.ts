@@ -12,31 +12,32 @@ export const welcomeChat = async (
 ) => {
   const now = Date.now();
 
-  const user: IUser | null = await User.findOne({
-    id: remoteJid,
-  }).lean<IUser>();
+  try {
+    const user: IUser | null = await User.findOne({
+      id: remoteJid,
+    }).lean<IUser>();
 
-  let welcomeMessage = "";
-
-  if (!user) {
-    welcomeMessage = helloText(pushName);
-  } else {
-    const lastInteraction = user.lastInteraction
+    let welcomeMessage = "";
+    const lastInteraction = user?.lastInteraction
       ? new Date(user.lastInteraction).getTime()
       : 0;
 
-    if (now - lastInteraction > WELCOME_MESSAGE_INTERVAL) {
+    if (!user || now - lastInteraction > WELCOME_MESSAGE_INTERVAL) {
       welcomeMessage = helloText(pushName);
     }
-  }
 
-  if (welcomeMessage) {
-    await socket.sendMessage(remoteJid, { text: welcomeMessage });
-  }
+    if (welcomeMessage) {
+      console.log("Sending welcome to:", remoteJid);
+      await new Promise((res) => setTimeout(res, 500));
+      await socket.sendMessage(remoteJid, { text: welcomeMessage });
+    }
 
-  await User.findOneAndUpdate(
-    { id: remoteJid },
-    { username: pushName, number: number, lastInteraction: now },
-    { upsert: true, new: true }
-  );
+    await User.findOneAndUpdate(
+      { id: remoteJid },
+      { username: pushName, number: number, lastInteraction: now },
+      { upsert: true, new: true }
+    );
+  } catch (err) {
+    console.error("Error in welcomeChat:", err);
+  }
 };

@@ -151,54 +151,54 @@ export const checkProductPrice = async (
         responseMessage += "```\n";
       }
       if (internetProducts.length > 0) {
-        responseMessage += "*Daftar Paket Internet*\n\n```";
+        responseMessage += "Daftar Paket Internet\n\n";
 
-        const sortedInternet = internetProducts.sort(
-          (a, b) => a.sellPrice - b.sellPrice
-        );
+        const getPrefix = (productId: string) => {
+          const match = productId.match(/^[A-Za-z]+/);
+          return match ? match[0].toUpperCase() : productId;
+        };
 
-        let maxDescriptionLength = 0;
-        const descriptionDisplays = sortedInternet.map((product) => {
-          const description = `[${product.productId}] ${capitalizeFirst(
-            product.description
-          )}`;
-          if (description.length > maxDescriptionLength) {
-            maxDescriptionLength = description.length;
-          }
-          return description;
-        });
+        const groupedByPrefix: Record<string, typeof internetProducts> = {};
+
+        for (const product of internetProducts) {
+          const prefix = getPrefix(product.productId);
+          if (!groupedByPrefix[prefix]) groupedByPrefix[prefix] = [];
+          groupedByPrefix[prefix].push(product);
+        }
+
+        const sortedPrefixes = Object.keys(groupedByPrefix).sort();
 
         const NBSP = "\u00A0";
         const spacing = 1;
 
-        const getLettersOnly = (productId) => {
-          const match = productId.match(/^[A-Za-z]+/);
-          return match ? match[0] : productId;
-        };
-
-        let prevPrefix = "";
-
-        sortedInternet.forEach((product, index) => {
-          const currentPrefix = getLettersOnly(product.productId).toUpperCase();
-
-          if (prevPrefix && prevPrefix !== currentPrefix) {
-            responseMessage += "\n"; // Tambahkan spasi antar blok
-          }
-
-          prevPrefix = currentPrefix;
-
-          const description = descriptionDisplays[index].padEnd(
-            maxDescriptionLength + spacing,
-            NBSP
+        for (const prefix of sortedPrefixes) {
+          const group = groupedByPrefix[prefix].sort(
+            (a, b) => a.sellPrice - b.sellPrice
           );
 
-          const line = `• ${description}: ${formatPriceToIDR(
-            product.sellPrice
-          )}`;
-          responseMessage += line + "\n";
-        });
+          let maxDescriptionLength = 0;
+          const descriptions = group.map((product) => {
+            const desc = `[${product.productId}] ${capitalizeFirst(
+              product.description
+            )}`;
+            if (desc.length > maxDescriptionLength)
+              maxDescriptionLength = desc.length;
+            return desc;
+          });
 
-        responseMessage += "```\n";
+          group.forEach((product, i) => {
+            const desc = descriptions[i].padEnd(
+              maxDescriptionLength + spacing,
+              NBSP
+            );
+            const line = `• ${desc}: ${formatPriceToIDR(product.sellPrice)}`;
+            responseMessage += line + "\n";
+          });
+
+          responseMessage += "\n"; // pemisah antar prefix group
+        }
+
+        responseMessage += "";
       }
       if (eWalletProducts.length > 0) {
         responseMessage += "*Daftar Harga*\n\n```";
